@@ -1,0 +1,19 @@
+
+<style>
+div{position:absolute;border:1px solid black;opacity:0.5}
+</style>
+
+<div style="left:60px;top:14px;width:329px;height:371px"></div>
+<div style="left:278px;top:298px;width:73px;height:87px"></div>
+<div style="left:278px;top:298px;width:73px;height:87px"></div>
+<div style="left:60px;top:14px;width:329px;height:157px"></div>
+<div style="left:60px;top:14px;width:75px;height:72px"></div>
+<div style="left:305px;top:74px;width:84px;height:97px"></div>
+
+<script>
+var divs = document.getElementsByTagName('div')
+for (i = 0; i < divs.length; i++) {
+	divs[i].style.backgroundColor = '#' + ((i*5)+300).toString(16);
+}
+</script>
+
