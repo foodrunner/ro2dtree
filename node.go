@@ -2,7 +2,7 @@ package ro2dtree
 
 type Node struct {
 	box      *Box
-	Children Polygons
+	children Polygons
 }
 
 //overlap
@@ -19,12 +19,32 @@ func (n *Node) Centroid() Point {
 
 func (n *Node) Add(polygon Polygon) {
 	n.box = nil
-	n.Children = append(n.Children, polygon)
+	n.children = append(n.children, polygon)
 }
 
 func (n *Node) Box() *Box {
 	if n.box == nil {
-		n.box = n.Children.Box()
+		n.box = n.children.Box()
 	}
 	return n.box
+}
+
+func (n *Node) Children() Polygons {
+	return n.children
+}
+
+func (n *Node) Contains(point Point) bool {
+	topLeft, bottomRight := n.box.TopLeft, n.box.BottomRight
+	x, y := point.X, point.Y
+	return x >= topLeft.X && y >= topLeft.Y && x <= bottomRight.X && y <= bottomRight.Y
+}
+
+func (n *Node) seal() {
+	if l := len(n.children); l < cap(n.children) {
+		trimmed := make(Polygons, l)
+		copy(trimmed, n.children)
+		n.children = trimmed
+	}
+	//make sure n.box is valid
+	n.Box()
 }

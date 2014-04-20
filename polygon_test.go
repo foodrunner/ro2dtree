@@ -34,19 +34,19 @@ func TestPolygonHasProperCentroid(t *testing.T) {
 
 func TestPolygonHitWhenOutside(t *testing.T) {
 	p := buildRectangle(0, 0, 10, 10)
-	expectFalse(t, p.Hit(0, 0))
-	expectFalse(t, p.Hit(10, 10))
-	expectFalse(t, p.Hit(0, 10))
-	expectFalse(t, p.Hit(10, 0))
-	expectFalse(t, p.Hit(11, 5))
-	expectFalse(t, p.Hit(5, 11))
-	expectFalse(t, p.Hit(25, 25))
+	expectFalse(t, p.Contains(NewPoint(0, 0)))
+	expectFalse(t, p.Contains(NewPoint(10, 10)))
+	expectFalse(t, p.Contains(NewPoint(0, 10)))
+	expectFalse(t, p.Contains(NewPoint(10, 0)))
+	expectFalse(t, p.Contains(NewPoint(11, 5)))
+	expectFalse(t, p.Contains(NewPoint(5, 11)))
+	expectFalse(t, p.Contains(NewPoint(25, 25)))
 }
 
 func TestPolygonHitWhenInside(t *testing.T) {
 	p := buildRectangle(0, 0, 10, 10)
-	expectTrue(t, p.Hit(1, 1))
-	expectTrue(t, p.Hit(9, 4))
+	expectTrue(t, p.Contains(NewPoint(1, 1)))
+	expectTrue(t, p.Contains(NewPoint(9, 4)))
 }
 
 func buildRectangle(x1, y1, x2, y2 float64) *SimplePolygon {

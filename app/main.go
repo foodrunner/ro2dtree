@@ -4,32 +4,58 @@ import (
 	"fmt"
 	"github.com/foodrunner/ro2dtree"
 	"math/rand"
+	"time"
 )
 
 const (
 	GRID_MIN = 0
-	GRID_MAX = 800
+	GRID_MAX = 5000
 )
 
 func main() {
 	rand.Seed(101)
+	all := createPolygons(1000000)
 	tree := ro2dtree.New(8, 16)
-	tree.Load(createPolygons(150))
+	needle := ro2dtree.NewPoint(100, 100)
 
-	fmt.Println(`
-<style>
-div{position:absolute;border:1px solid black;opacity:0.2}
-</style>
-`)
-	draw(tree.Root, 1, true)
-	fmt.Println(`
-<script>
-var divs = document.getElementsByTagName('div')
-for (i = 0; i < divs.length; i++) {
-	divs[i].style.backgroundColor = '#' + ((i*10)+300).toString(16);
-}
-</script>
-`)
+	tree.Load(all)
+	result := tree.Find(needle)
+
+	s1 := time.Now()
+	result := tree.Find(needle)
+	e1 := time.Now()
+	fmt.Println("Tree Find:")
+	for _, polygon := range result.Polygons() {
+		fmt.Println(polygon)
+	}
+	fmt.Println("")
+
+	fmt.Println("Scan Find:")
+	s2 := time.Now()
+	found := find(all, needle)
+	e2 := time.Now()
+	for _, polygon := range found {
+		fmt.Println(polygon)
+	}
+	fmt.Println("")
+
+	fmt.Println(e1.Sub(s1))
+	fmt.Println(e2.Sub(s2))
+
+	// 	fmt.Println(`
+	// <style>
+	// div{position:absolute;border:1px solid black;opacity:0.2}
+	// </style>
+	// `)
+	// 	draw(tree.Root, 1, true)
+	// 	fmt.Println(`
+	// <script>
+	// var divs = document.getElementsByTagName('div')
+	// for (i = 0; i < divs.length; i++) {
+	// 	divs[i].style.backgroundColor = '#' + ((i*10)+300).toString(16);
+	// }
+	// </script>
+	// `)
 }
 
 func createPolygons(count int) ro2dtree.Polygons {
@@ -41,8 +67,8 @@ func createPolygons(count int) ro2dtree.Polygons {
 }
 
 func createPolygon() ro2dtree.Polygon {
-	lengthA := float64(rand.Int31n(50) + 50)
-	lengthB := float64(rand.Int31n(50) + 50)
+	lengthA := float64(rand.Int31n(50) + 500)
+	lengthB := float64(rand.Int31n(50) + 500)
 	x := float64(rand.Int31n(GRID_MAX - int32(lengthA)))
 	y := float64(rand.Int31n(GRID_MAX - int32(lengthB)))
 
@@ -67,8 +93,18 @@ func draw(polygon ro2dtree.Polygon, level int, recurse bool) {
 	topLeft, bottomRight := box.TopLeft, box.BottomRight
 	fmt.Println(fmt.Sprintf(`<div style="left:%dpx;top:%dpx;width:%dpx;height:%dpx"></div>`, int(topLeft.X), int(topLeft.Y), int(bottomRight.X-topLeft.X), int(bottomRight.Y-topLeft.Y)))
 	if recurse {
-		for _, child := range polygon.(*ro2dtree.Node).Children {
+		for _, child := range polygon.Children() {
 			draw(child, level+1, false)
 		}
 	}
+}
+
+func find(polygons ro2dtree.Polygons, needle ro2dtree.Point) ro2dtree.Polygons {
+	results := make(ro2dtree.Polygons, 0, 1000)
+	for _, polygon := range polygons {
+		if polygon.Contains(needle) {
+			results = append(results, polygon)
+		}
+	}
+	return results
 }

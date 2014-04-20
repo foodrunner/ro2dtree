@@ -6,8 +6,10 @@ type Box struct {
 }
 
 type Polygon interface {
-	Centroid() Point
 	Box() *Box
+	Centroid() Point
+	Contains(p Point) bool
+	Children() Polygons
 }
 
 type Polygons []Polygon
@@ -76,9 +78,14 @@ func (p *SimplePolygon) Centroid() Point {
 	return p.centroid
 }
 
-func (p *SimplePolygon) Hit(x, y float64) bool {
-	box := p.box
-	if x <= box.TopLeft.X || y <= box.TopLeft.Y || x >= box.BottomRight.X || y >= box.BottomRight.Y {
+func (p *SimplePolygon) Children() Polygons {
+	return nil
+}
+
+func (p *SimplePolygon) Contains(point Point) bool {
+	topLeft, bottomRight := p.box.TopLeft, p.box.BottomRight
+	x, y := point.X, point.Y
+	if x <= topLeft.X || y <= topLeft.Y || x >= bottomRight.X || y >= bottomRight.Y {
 		return false
 	}
 	var hit bool
