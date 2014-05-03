@@ -6,13 +6,21 @@ import (
 )
 
 type Tree struct {
-	min  int
-	max  int
-	Root Polygon
+	min         int
+	max         int
+	Root        Polygon
+	resultPool  *ResultPool
+	scratchPool *ResultPool
 }
 
 func New(min, max int) *Tree {
-	return &Tree{min, max, nil}
+	return &Tree{
+		min:         min,
+		max:         max,
+		Root:        nil,
+		resultPool:  newResultPool(32, 50),
+		scratchPool: newResultPool(1024, max),
+	}
 }
 
 func (t *Tree) Load(polygons Polygons) {
@@ -69,21 +77,41 @@ func (t *Tree) Find(point Point) *Result {
 	//todo move this to a pool
 	//todo allow offset / limit
 	//enforce limit
-	result := &Result{
-		polygons: make(Polygons, 100000),
+	if t.Root.Contains(point) == false {
+		return &Result{polygons: make(Polygons, 0)}
 	}
+	result := t.resultPool.Checkout()
+	result.target = point
 	t.find(t.Root, point, result)
+	sort.Sort(result)
 	return result
 }
 
-func (t *Tree) find(node Polygon, point Point, results *Result) {
-	if node.Contains(point) {
-		children := node.Children()
-		if children == nil {
-			results.Add(node)
-		}
-		for _, child := range children {
-			t.find(child, point, results)
+func (t *Tree) find(node Polygon, point Point, results *Result) bool {
+	scratch := t.scratchPool.Checkout()
+	defer scratch.Close()
+	scratch.target = point
+
+	children := node.Children()
+	if children == nil {
+		return results.Add(node)
+	}
+	for _, child := range children {
+		if child.Contains(point) {
+			scratch.Add(child)
 		}
 	}
+	l := scratch.Len()
+	if l == 0 {
+		return true
+	}
+	if l != 1 {
+		sort.Sort(scratch)
+	}
+	for _, child := range scratch.Polygons() {
+		if t.find(child, point, results) == false {
+			return false
+		}
+	}
+	return true
 }

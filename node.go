@@ -39,6 +39,10 @@ func (n *Node) Contains(point Point) bool {
 	return x >= topLeft.X && y >= topLeft.Y && x <= bottomRight.X && y <= bottomRight.Y
 }
 
+func (n *Node) String() string {
+	return n.Centroid().String()
+}
+
 func (n *Node) seal() {
 	if l := len(n.children); l < cap(n.children) {
 		trimmed := make(Polygons, l)

@@ -10,6 +10,7 @@ type Polygon interface {
 	Centroid() Point
 	Contains(p Point) bool
 	Children() Polygons
+	String() string
 }
 
 type Polygons []Polygon
@@ -78,6 +79,10 @@ func (p *SimplePolygon) Centroid() Point {
 	return p.centroid
 }
 
+func (p *SimplePolygon) String() string {
+	return p.centroid.String()
+}
+
 func (p *SimplePolygon) Children() Polygons {
 	return nil
 }
@@ -92,7 +97,8 @@ func (p *SimplePolygon) Contains(point Point) bool {
 	points := p.points
 	l := len(points)
 	for i, j := 0, l-1; i < l; {
-		if ((points[i].X > x) != (points[j].X > y)) && (x < (points[j].Y-points[i].Y)*(y-points[i].X)/(points[j].X-points[i].X)+points[i].Y) {
+		pointi, pointj := points[i], points[j]
+		if (pointi.Y >= y) != (pointj.Y >= y) && (x <= (pointj.X-pointi.X)*(y-pointi.Y)/(pointj.Y-pointi.Y)+pointi.X) {
 			hit = !hit
 		}
 		j = i

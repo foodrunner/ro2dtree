@@ -1,8 +1,25 @@
 package ro2dtree
 
+import (
+	"math"
+	"strconv"
+)
+
 type Point struct {
 	X float64
 	Y float64
+}
+
+func NewPoint(x, y float64) Point {
+	return Point{x, y}
+}
+
+func (p Point) String() string {
+	return strconv.FormatFloat(p.X, 'f', -1, 32) + "x" + strconv.FormatFloat(p.Y, 'f', -1, 32)
+}
+
+func (p Point) DistanceTo(target Point) float64 {
+	return math.Hypot(p.X-target.X, p.Y-target.Y)
 }
 
 func (p Point) Id() uint64 {
@@ -19,10 +36,6 @@ func (p Point) Id() uint64 {
 	result |= uint64((x >> 0) & 1)
 	result |= uint64((y >> 0) & 1)
 	return result
-}
-
-func NewPoint(x, y float64) Point {
-	return Point{x, y}
 }
 
 type Points []Point

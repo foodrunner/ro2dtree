@@ -9,38 +9,36 @@ import (
 
 const (
 	GRID_MIN = 0
-	GRID_MAX = 5000
+	GRID_MAX = 500
 )
 
 func main() {
-	rand.Seed(101)
-	all := createPolygons(1000000)
+	rand.Seed(20)
+	all := createPolygons(20)
 	tree := ro2dtree.New(8, 16)
-	needle := ro2dtree.NewPoint(100, 100)
+	needle := ro2dtree.NewPoint(228, 30)
 
 	tree.Load(all)
-	result := tree.Find(needle)
-
 	s1 := time.Now()
 	result := tree.Find(needle)
-	e1 := time.Now()
-	fmt.Println("Tree Find:")
-	for _, polygon := range result.Polygons() {
-		fmt.Println(polygon)
-	}
-	fmt.Println("")
+	fmt.Println(time.Now().Sub(s1), len(result.Polygons()))
+	// fmt.Println("Tree Find:")
+	// for _, polygon := range result.Polygons() {
+	// 	fmt.Println(polygon)
+	// }
+	// fmt.Println("")
 
-	fmt.Println("Scan Find:")
-	s2 := time.Now()
-	found := find(all, needle)
-	e2 := time.Now()
-	for _, polygon := range found {
-		fmt.Println(polygon)
-	}
-	fmt.Println("")
+	// fmt.Println("Scan Find:")
+	// s2 := time.Now()
+	// found := find(all, needle)
+	// e2 := time.Now()
+	// for _, polygon := range found {
+	// 	fmt.Println(polygon)
+	// }
+	// fmt.Println("")
 
-	fmt.Println(e1.Sub(s1))
-	fmt.Println(e2.Sub(s2))
+	// fmt.Println(e1.Sub(s1))
+	// fmt.Println(e2.Sub(s2))
 
 	// 	fmt.Println(`
 	// <style>
@@ -67,8 +65,8 @@ func createPolygons(count int) ro2dtree.Polygons {
 }
 
 func createPolygon() ro2dtree.Polygon {
-	lengthA := float64(rand.Int31n(50) + 500)
-	lengthB := float64(rand.Int31n(50) + 500)
+	lengthA := float64(rand.Int31n(5) + 50)
+	lengthB := float64(rand.Int31n(5) + 50)
 	x := float64(rand.Int31n(GRID_MAX - int32(lengthA)))
 	y := float64(rand.Int31n(GRID_MAX - int32(lengthB)))
 
