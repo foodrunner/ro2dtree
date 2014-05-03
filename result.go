@@ -4,6 +4,8 @@ import (
 	"sync/atomic"
 )
 
+var EmptyResult = newResult(nil, 0)
+
 //todo stats
 type ResultPool struct {
 	misses   int64
@@ -24,8 +26,8 @@ func newResultPool(count, capacity int) *ResultPool {
 
 func (pool *ResultPool) Checkout() *Result {
 	select {
-	case Result := <-pool.list:
-		return Result
+	case result := <-pool.list:
+		return result
 	default:
 		atomic.AddInt64(&pool.misses, 1)
 		return newResult(nil, pool.capacity)

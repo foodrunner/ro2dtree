@@ -13,29 +13,23 @@ const (
 )
 
 func main() {
-	rand.Seed(20)
-	all := createPolygons(20)
-	tree := ro2dtree.New(8, 16)
+	rand.Seed(time.Now().Unix())
+	seed := rand.Int31n(10000)
+	rand.Seed(int64(seed))
+	all := createPolygons(100000)
+	tree := ro2dtree.New(16, 16, 5000)
 	needle := ro2dtree.NewPoint(228, 30)
 
 	tree.Load(all)
 	s1 := time.Now()
 	result := tree.Find(needle)
-	fmt.Println(time.Now().Sub(s1), len(result.Polygons()))
-	// fmt.Println("Tree Find:")
-	// for _, polygon := range result.Polygons() {
-	// 	fmt.Println(polygon)
-	// }
-	// fmt.Println("")
+	fmt.Println(time.Now().Sub(s1), result.Len())
+	fmt.Println(seed)
 
-	// fmt.Println("Scan Find:")
-	// s2 := time.Now()
-	// found := find(all, needle)
-	// e2 := time.Now()
-	// for _, polygon := range found {
-	// 	fmt.Println(polygon)
-	// }
-	// fmt.Println("")
+	s2 := time.Now()
+	found := find(all, needle)
+	fmt.Println(time.Now().Sub(s2), found.Len())
+	fmt.Println("")
 
 	// fmt.Println(e1.Sub(s1))
 	// fmt.Println(e2.Sub(s2))
@@ -65,8 +59,8 @@ func createPolygons(count int) ro2dtree.Polygons {
 }
 
 func createPolygon() ro2dtree.Polygon {
-	lengthA := float64(rand.Int31n(5) + 50)
-	lengthB := float64(rand.Int31n(5) + 50)
+	lengthA := float64(rand.Int31n(100) + 50)
+	lengthB := float64(rand.Int31n(100) + 50)
 	x := float64(rand.Int31n(GRID_MAX - int32(lengthA)))
 	y := float64(rand.Int31n(GRID_MAX - int32(lengthB)))
 
