@@ -7,7 +7,7 @@ import (
 
 func TestTreeFindMatchingValues(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		tree := New(2, 4)
+		tree := New(2, 4, 1000)
 		polygons := createPolygons(500)
 		tree.Load(polygons)
 		needle := NewPoint(float64(rand.Int31n(20)), float64(rand.Int31n(20)))
@@ -16,7 +16,7 @@ func TestTreeFindMatchingValues(t *testing.T) {
 }
 
 func BenchmarkTreeFindLowFill(b *testing.B) {
-	tree := New(2, 4)
+	tree := New(2, 4, 1000)
 	polygons := createPolygons(50000)
 	tree.Load(polygons)
 	b.ResetTimer()
@@ -27,13 +27,12 @@ func BenchmarkTreeFindLowFill(b *testing.B) {
 }
 
 func BenchmarkTreeFindHighFill(b *testing.B) {
-	tree := New(8, 16)
+	tree := New(8, 16, 1000)
 	polygons := createPolygons(50000)
 	tree.Load(polygons)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		needle := NewPoint(float64(rand.Int31n(20)), float64(rand.Int31n(20)))
-		tree.Find(needle)
 	}
 }
 
