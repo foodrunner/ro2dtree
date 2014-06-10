@@ -21,7 +21,7 @@ func New(minFill, maxFill, maxResults int) *Tree {
 		min:        minFill,
 		max:        maxFill,
 		Root:       nil,
-		idMap:			make(map[int]Polygon),
+		idMap:      make(map[int]Polygon),
 		stackPool:  newStackPool(32, maxDepth),
 		resultPool: newResultPool(32, maxResults),
 	}
@@ -100,7 +100,8 @@ func (t *Tree) Get(id int) Polygon {
 
 // Return id of the polygon which contains point and has smallest distance to point
 func (t *Tree) HitTest(ids []int, point Point) int {
-	resultId := -1; minDistance := math.MaxFloat64
+	resultId := -1
+	minDistance := math.MaxFloat64
 	for _, id := range ids {
 		polygon := t.Get(id)
 		if polygon == nil {

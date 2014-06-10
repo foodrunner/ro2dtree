@@ -74,7 +74,7 @@ func TestHitTest(t *testing.T) {
 	tree.Load(polygons)
 
 	point := NewPoint(3, 3)
-	
+
 	ids := []int{0, 1, 2, 3}
 	id := tree.HitTest(ids, point)
 	if id != 2 {
@@ -84,7 +84,7 @@ func TestHitTest(t *testing.T) {
 	ids = []int{0, 3}
 	id = tree.HitTest(ids, point)
 	if id != -1 {
-		t.Errorf("Expecting hit test fails, get %v", id)	
+		t.Errorf("Expecting hit test fails, get %v", id)
 	}
 }
 

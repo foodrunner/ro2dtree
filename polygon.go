@@ -11,7 +11,7 @@ type Polygon interface {
 	Contains(p Point) bool
 	Children() Polygons
 	String() string
-	Id() int;
+	Id() int
 }
 
 type Polygons []Polygon
@@ -70,7 +70,7 @@ func NewPolygon(id int, points Points) *SimplePolygon {
 		points:   points,
 		box:      calculateBox(points),
 		centroid: calculateCentroid(points),
-		id:				id,
+		id:       id,
 	}
 }
 
