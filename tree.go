@@ -1,7 +1,6 @@
 package ro2dtree
 
 import (
-	"fmt"
 	"math"
 	"sort"
 )
@@ -100,14 +99,18 @@ func (t *Tree) Get(id int) Polygon {
 
 // Return id of the polygon which contains point and has smallest distance to point
 func (t *Tree) HitTest(ids []int, point Point) int {
-	resultId := -1
-	minDistance := math.MaxFloat64
-	for _, id := range ids {
+	polygon := t.Get(ids[0])
+	if polygon != nil && polygon.Contains(point) {
+		resultId = ids[0]
+		minDistance := polygon.Centroid().DistanceTo(point)
+	} else {
+		resultId := -1
+		minDistance := math.MaxFloat64
+	}
+
+	for _, id := range ids[1:] {
 		polygon := t.Get(id)
-		if polygon == nil {
-			fmt.Println(id)
-		}
-		if (polygon != nil) && (polygon.Contains(point)) {
+		if polygon != nil && polygon.Contains(point) {
 			distance := polygon.Centroid().DistanceTo(point)
 			if distance < minDistance {
 				resultId = id
