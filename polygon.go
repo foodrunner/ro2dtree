@@ -11,6 +11,7 @@ type Polygon interface {
 	Contains(p Point) bool
 	Children() Polygons
 	String() string
+	Id() int;
 }
 
 type Polygons []Polygon
@@ -61,13 +62,15 @@ type SimplePolygon struct {
 	points   Points
 	box      *Box
 	centroid Point
+	id       int
 }
 
-func NewPolygon(points Points) *SimplePolygon {
+func NewPolygon(id int, points Points) *SimplePolygon {
 	return &SimplePolygon{
 		points:   points,
 		box:      calculateBox(points),
 		centroid: calculateCentroid(points),
+		id:				id,
 	}
 }
 
@@ -85,6 +88,10 @@ func (p *SimplePolygon) String() string {
 
 func (p *SimplePolygon) Children() Polygons {
 	return nil
+}
+
+func (p *SimplePolygon) Id() int {
+	return p.id
 }
 
 func (p *SimplePolygon) Contains(point Point) bool {

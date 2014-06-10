@@ -43,6 +43,10 @@ func (n *Node) String() string {
 	return n.Centroid().String()
 }
 
+func (n *Node) Id() int {
+	return -1
+}
+
 func (n *Node) seal() {
 	if l := len(n.children); l < cap(n.children) {
 		trimmed := make(Polygons, l)

@@ -70,9 +70,13 @@ func (r *Result) Len() int {
 }
 
 func (r *Result) Less(i, j int) bool {
-	return r.polygons[i].Centroid().DistanceTo(r.target) < r.polygons[j].Centroid().DistanceTo(r.target)
+	return r.Rank(r.polygons[i]) < r.Rank(r.polygons[j])
 }
 
 func (r *Result) Swap(i, j int) {
 	r.polygons[i], r.polygons[j] = r.polygons[j], r.polygons[i]
+}
+
+func (r *Result) Rank(polygon Polygon) float64 {
+	return polygon.Centroid().DistanceTo(r.target)
 }
