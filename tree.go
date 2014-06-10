@@ -9,6 +9,7 @@ type Tree struct {
 	min        int
 	max        int
 	Root       Polygon
+	idMap      map[int]Polygon
 	stackPool  *StackPool
 	resultPool *ResultPool
 }
@@ -19,12 +20,17 @@ func New(minFill, maxFill, maxResults int) *Tree {
 		min:        minFill,
 		max:        maxFill,
 		Root:       nil,
+		idMap:      make(map[int]Polygon),
 		stackPool:  newStackPool(32, maxDepth),
 		resultPool: newResultPool(32, maxResults),
 	}
 }
 
 func (t *Tree) Load(polygons Polygons) {
+	for _, polygon := range polygons {
+		// Should we raise exception here if a polygon with the same id already exists ?
+		t.idMap[polygon.Id()] = polygon
+	}
 	t.Root = t.load(polygons)
 }
 
@@ -85,4 +91,32 @@ func (t *Tree) find(node Polygon, point Point) *Result {
 		}
 	}
 	return result
+}
+
+func (t *Tree) Get(id int) Polygon {
+	return t.idMap[id]
+}
+
+// Return id of the polygon which contains point and has smallest distance to point
+func (t *Tree) HitTest(ids []int, point Point) int {
+	polygon := t.Get(ids[0])
+	if polygon != nil && polygon.Contains(point) {
+		resultId = ids[0]
+		minDistance := polygon.Centroid().DistanceTo(point)
+	} else {
+		resultId := -1
+		minDistance := math.MaxFloat64
+	}
+
+	for _, id := range ids[1:] {
+		polygon := t.Get(id)
+		if polygon != nil && polygon.Contains(point) {
+			distance := polygon.Centroid().DistanceTo(point)
+			if distance < minDistance {
+				resultId = id
+				minDistance = distance
+			}
+		}
+	}
+	return resultId
 }

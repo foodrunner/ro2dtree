@@ -53,18 +53,18 @@ func main() {
 func createPolygons(count int) ro2dtree.Polygons {
 	polygons := make(ro2dtree.Polygons, count)
 	for i := 0; i < count; i++ {
-		polygons[i] = createPolygon()
+		polygons[i] = createPolygon(i)
 	}
 	return polygons
 }
 
-func createPolygon() ro2dtree.Polygon {
+func createPolygon(id int) ro2dtree.Polygon {
 	lengthA := float64(rand.Int31n(100) + 50)
 	lengthB := float64(rand.Int31n(100) + 50)
 	x := float64(rand.Int31n(GRID_MAX - int32(lengthA)))
 	y := float64(rand.Int31n(GRID_MAX - int32(lengthB)))
 
-	return ro2dtree.NewPolygon(ro2dtree.Points{
+	return ro2dtree.NewPolygon(id, ro2dtree.Points{
 		ro2dtree.NewPoint(x, y),
 		ro2dtree.NewPoint(x+lengthA, y),
 		ro2dtree.NewPoint(x+lengthA, y+lengthB),
