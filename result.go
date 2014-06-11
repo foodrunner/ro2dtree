@@ -78,6 +78,9 @@ func (r *Result) Polygons() Polygons {
 func (r *Result) Close() {
 	if r.pool != nil {
 		r.position = 0
+		for key := range r.groupMap {
+			delete(r.groupMap, key)
+		}
 		r.pool.list <- r
 	}
 }
