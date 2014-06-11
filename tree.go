@@ -93,19 +93,54 @@ func (t *Tree) find(node Polygon, point Point) *Result {
 	return result
 }
 
+func (t *Tree) FindUniqueByGroup(point Point) *Result {
+	if t.Root.Contains(point) == false {
+		return EmptyResult
+	}
+	return t.findUniqueByGroup(t.Root, point)
+}
+
+func (t *Tree) findUniqueByGroup(node Polygon, point Point) *Result {
+	stack := t.stackPool.Checkout()
+	defer stack.Close()
+	result := t.resultPool.Checkout()
+	result.target = point
+
+	for ; node != nil; node = stack.Pop() {
+		if node.Contains(point) == false {
+			continue
+		}
+		children := node.Children()
+		if children == nil {
+			if result.AddUniqueByGroup(node) == false {
+				break
+			}
+			continue
+		}
+		for _, child := range children {
+			stack.Push(child)
+		}
+	}
+	return result
+}
+
 func (t *Tree) Get(id int) Polygon {
 	return t.idMap[id]
 }
 
 // Return id of the polygon which contains point and has smallest distance to point
 func (t *Tree) HitTest(ids []int, point Point) int {
+	var resultId int
+	var minDistance float64
+
+	// Try with first polygon
 	polygon := t.Get(ids[0])
 	if polygon != nil && polygon.Contains(point) {
 		resultId = ids[0]
-		minDistance := polygon.Centroid().DistanceTo(point)
+		minDistance = polygon.Centroid().DistanceTo(point)
 	} else {
-		resultId := -1
-		minDistance := math.MaxFloat64
+		resultId = -1
+		minDistance = math.MaxFloat64
 	}
 
 	for _, id := range ids[1:] {

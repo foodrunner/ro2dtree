@@ -13,7 +13,7 @@ func TestPolygonHasAPropertyBoundingBox(t *testing.T) {
 		NewPoint(1, 20),
 		NewPoint(0, 0),
 	}
-	box := NewPolygon(1, points).Box()
+	box := NewPolygon(1, 1, points).Box()
 	expectPoint(t, box.TopLeft, 0, 0)
 	expectPoint(t, box.BottomRight, 22, 20)
 }
@@ -25,7 +25,7 @@ func TestPolygonHasProperCentroid(t *testing.T) {
 		NewPoint(5, 8),
 		NewPoint(0, 0),
 	}
-	p := NewPolygon(1, points)
+	p := NewPolygon(1, 1, points)
 	expected := NewPoint(5, 6)
 	if p.centroid != expected {
 		t.Errorf("Expecting a centroid of %v got %v", expected, p.centroid)
@@ -40,9 +40,23 @@ func TestPolygonHasProperId(t *testing.T) {
 		NewPoint(0, 0),
 	}
 	expected := 500
-	p := NewPolygon(expected, points)
+	p := NewPolygon(expected, 1, points)
 	if p.Id() != expected {
 		t.Errorf("Expecting Id of %v got %v", expected, p.Id())
+	}
+}
+
+func TestPolygonHasProperGroupId(t *testing.T) {
+	points := Points{
+		NewPoint(0, 0),
+		NewPoint(10, 10),
+		NewPoint(5, 8),
+		NewPoint(0, 0),
+	}
+	expected := 500
+	p := NewPolygon(1, expected, points)
+	if p.GroupId() != expected {
+		t.Errorf("Expecting Group Id of %v got %v", expected, p.GroupId())
 	}
 }
 
@@ -71,7 +85,7 @@ func buildRectangle(x1, y1, x2, y2 float64) *SimplePolygon {
 		NewPoint(x1, y2),
 		NewPoint(x1, y1),
 	}
-	return NewPolygon(1, points)
+	return NewPolygon(1, 1, points)
 }
 
 func expectFalse(t *testing.T, actual bool) {

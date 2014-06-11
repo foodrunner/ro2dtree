@@ -63,8 +63,8 @@ func createPolygon(id int) ro2dtree.Polygon {
 	lengthB := float64(rand.Int31n(100) + 50)
 	x := float64(rand.Int31n(GRID_MAX - int32(lengthA)))
 	y := float64(rand.Int31n(GRID_MAX - int32(lengthB)))
-
-	return ro2dtree.NewPolygon(id, ro2dtree.Points{
+	groupId := 1
+	return ro2dtree.NewPolygon(id, groupId, ro2dtree.Points{
 		ro2dtree.NewPoint(x, y),
 		ro2dtree.NewPoint(x+lengthA, y),
 		ro2dtree.NewPoint(x+lengthA, y+lengthB),

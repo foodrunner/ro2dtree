@@ -15,6 +15,57 @@ func TestTreeFindMatchingValues(t *testing.T) {
 	}
 }
 
+func TestTreeFindUniqueByGroupMatchingValues(t *testing.T) {
+	polygons := make(Polygons, 4)
+	points0 := Points{
+		NewPoint(0, 0),
+		NewPoint(0, 4),
+		NewPoint(4, 4),
+		NewPoint(4, 0),
+		NewPoint(0, 0),
+	}
+	polygons[0] = NewPolygon(0, 1, points0)
+
+	points1 := Points{
+		NewPoint(0, 0),
+		NewPoint(0, 2),
+		NewPoint(2, 2),
+		NewPoint(2, 0),
+		NewPoint(0, 0),
+	}
+	group1Polygon := NewPolygon(1, 1, points1)
+	polygons[1] = group1Polygon
+
+	points2 := Points{
+		NewPoint(0, 0),
+		NewPoint(0, 2),
+		NewPoint(4, 2),
+		NewPoint(4, 0),
+		NewPoint(0, 0),
+	}
+	polygons[2] = NewPolygon(2, 1, points2)
+
+	points3 := Points{
+		NewPoint(0, 0),
+		NewPoint(0, 4),
+		NewPoint(2, 4),
+		NewPoint(2, 0),
+		NewPoint(0, 0),
+	}
+	group2Polygon := NewPolygon(3, 2, points3)
+	polygons[3] = group2Polygon
+
+	tree := New(2, 4, 100)
+	tree.Load(polygons)
+	needle := NewPoint(1, 1)
+	polygonsFound := tree.FindUniqueByGroup(needle).Polygons()
+	// Load expected polygons
+	expected := make(map[Polygon]struct{})
+	expected[group1Polygon] = struct{}{}
+	expected[group2Polygon] = struct{}{}
+	expectSameNodes(t, polygonsFound, expected)
+}
+
 func TestTreeGetPolygonById(t *testing.T) {
 	tree := New(8, 16, 1000)
 	polygons := createPolygons(500)
@@ -42,7 +93,7 @@ func TestHitTest(t *testing.T) {
 		NewPoint(2, 0),
 		NewPoint(0, 0),
 	}
-	polygons[0] = NewPolygon(0, points0)
+	polygons[0] = NewPolygon(0, 1, points0)
 
 	points1 := Points{
 		NewPoint(0, 0),
@@ -51,7 +102,7 @@ func TestHitTest(t *testing.T) {
 		NewPoint(4, 0),
 		NewPoint(0, 0),
 	}
-	polygons[1] = NewPolygon(1, points1)
+	polygons[1] = NewPolygon(1, 1, points1)
 
 	points2 := Points{
 		NewPoint(2, 2),
@@ -60,7 +111,7 @@ func TestHitTest(t *testing.T) {
 		NewPoint(4, 2),
 		NewPoint(2, 2),
 	}
-	polygons[2] = NewPolygon(2, points2)
+	polygons[2] = NewPolygon(2, 1, points2)
 
 	points3 := Points{
 		NewPoint(10, 2),
@@ -69,7 +120,7 @@ func TestHitTest(t *testing.T) {
 		NewPoint(14, 2),
 		NewPoint(10, 2),
 	}
-	polygons[3] = NewPolygon(3, points3)
+	polygons[3] = NewPolygon(3, 1, points3)
 
 	tree.Load(polygons)
 
@@ -135,7 +186,7 @@ func createPolygon(id int) Polygon {
 	x := float64(rand.Int31n(120 - int32(lengthA)))
 	y := float64(rand.Int31n(120 - int32(lengthB)))
 
-	return NewPolygon(id, Points{
+	return NewPolygon(id, 1, Points{
 		NewPoint(x, y),
 		NewPoint(x+lengthA, y),
 		NewPoint(x+lengthA, y+lengthB),

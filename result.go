@@ -38,6 +38,7 @@ type Result struct {
 	target   Point
 	position int
 	polygons Polygons
+	groupMap map[int]int
 	pool     *ResultPool
 }
 
@@ -45,12 +46,28 @@ func newResult(pool *ResultPool, capacity int) *Result {
 	return &Result{
 		pool:     pool,
 		polygons: make(Polygons, capacity),
+		groupMap: make(map[int]int),
 	}
 }
 
 func (r *Result) Add(polygon Polygon) bool {
 	r.polygons[r.position] = polygon
 	r.position++
+	return r.position != len(r.polygons)
+}
+
+func (r *Result) AddUniqueByGroup(polygon Polygon) bool {
+	oldPosition, present := r.groupMap[polygon.GroupId()]
+	if present {
+		oldPolygon := r.polygons[oldPosition]
+		if r.Rank(oldPolygon) > r.Rank(polygon) {
+			r.polygons[oldPosition] = polygon
+		}
+	} else {
+		r.groupMap[polygon.GroupId()] = r.position
+		r.polygons[r.position] = polygon
+		r.position++
+	}
 	return r.position != len(r.polygons)
 }
 
