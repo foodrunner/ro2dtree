@@ -4,79 +4,41 @@ import (
 	"sync/atomic"
 )
 
-var EmptyResult = newResult(nil, 0)
+type Result interface {
+	Items() Items
+	Add(item *Item) bool
+	Close()
+	Len() int
+}
+
+type ResultFactoryFunc func(*ResultPool, int) Result
 
 //todo stats
 type ResultPool struct {
 	misses   int64
 	capacity int
-	list     chan *Result
+	list     chan Result
+	factory  ResultFactoryFunc
 }
 
-func newResultPool(count, capacity int) *ResultPool {
+func newResultPool(count, capacity int, fn ResultFactoryFunc) *ResultPool {
 	pool := &ResultPool{
 		capacity: capacity,
-		list:     make(chan *Result, count),
+		list:     make(chan Result, count),
+		factory:  fn,
 	}
 	for i := 0; i < cap(pool.list); i++ {
-		pool.list <- newResult(pool, capacity)
+		pool.list <- fn(pool, capacity)
 	}
 	return pool
 }
 
-func (pool *ResultPool) Checkout() *Result {
+func (pool *ResultPool) Checkout() Result {
 	select {
 	case result := <-pool.list:
 		return result
 	default:
 		atomic.AddInt64(&pool.misses, 1)
-		return newResult(nil, pool.capacity)
+		return pool.factory(nil, pool.capacity)
 	}
-}
-
-type Result struct {
-	target   Point
-	position int
-	polygons Polygons
-	pool     *ResultPool
-}
-
-func newResult(pool *ResultPool, capacity int) *Result {
-	return &Result{
-		pool:     pool,
-		polygons: make(Polygons, capacity),
-	}
-}
-
-func (r *Result) Add(polygon Polygon) bool {
-	r.polygons[r.position] = polygon
-	r.position++
-	return r.position != len(r.polygons)
-}
-
-func (r *Result) Polygons() Polygons {
-	return r.polygons[:r.position]
-}
-
-func (r *Result) Close() {
-	if r.pool != nil {
-		r.position = 0
-		r.pool.list <- r
-	}
-}
-
-func (r *Result) Len() int {
-	return r.position
-}
-
-func (r *Result) Less(i, j int) bool {
-	return r.Rank(r.polygons[i]) < r.Rank(r.polygons[j])
-}
-
-func (r *Result) Swap(i, j int) {
-	r.polygons[i], r.polygons[j] = r.polygons[j], r.polygons[i]
-}
-
-func (r *Result) Rank(polygon Polygon) float64 {
-	return polygon.Centroid().DistanceTo(r.target)
 }

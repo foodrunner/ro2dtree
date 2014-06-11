@@ -7,16 +7,67 @@ import (
 
 func TestTreeFindMatchingValues(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		tree := New(2, 4, 1000)
+		tree := New(2, 4, 1000, NormalResultFactory)
 		polygons := createPolygons(500)
 		tree.Load(polygons)
 		needle := NewPoint(float64(rand.Int31n(20)), float64(rand.Int31n(20)))
-		expectSameNodes(t, tree.Find(needle).Polygons(), scan(polygons, needle))
+		expectSameNodes(t, tree.Find(needle).Items(), scan(polygons, needle))
 	}
 }
 
+func TestTreeFindUniqueByGroupMatchingValues(t *testing.T) {
+	polygons := make(Polygons, 4)
+	points0 := Points{
+		NewPoint(0, 0),
+		NewPoint(0, 4),
+		NewPoint(4, 4),
+		NewPoint(4, 0),
+		NewPoint(0, 0),
+	}
+	polygons[0] = NewPolygon(0, 1, points0)
+
+	points1 := Points{
+		NewPoint(0, 0),
+		NewPoint(0, 2),
+		NewPoint(2, 2),
+		NewPoint(2, 0),
+		NewPoint(0, 0),
+	}
+	group1Polygon := NewPolygon(1, 1, points1)
+	polygons[1] = group1Polygon
+
+	points2 := Points{
+		NewPoint(0, 0),
+		NewPoint(0, 2),
+		NewPoint(4, 2),
+		NewPoint(4, 0),
+		NewPoint(0, 0),
+	}
+	polygons[2] = NewPolygon(2, 1, points2)
+
+	points3 := Points{
+		NewPoint(0, 0),
+		NewPoint(0, 4),
+		NewPoint(2, 4),
+		NewPoint(2, 0),
+		NewPoint(0, 0),
+	}
+	group2Polygon := NewPolygon(3, 2, points3)
+	polygons[3] = group2Polygon
+
+	tree := New(2, 4, 100, DeduplicateResultFactory)
+	tree.Load(polygons)
+	needle := NewPoint(1, 1)
+	itemsFound := tree.Find(needle).Items()
+	// Load expected polygons
+	expected := make(map[Polygon]struct{})
+	expected[group1Polygon] = struct{}{}
+	expected[group2Polygon] = struct{}{}
+	expectSameNodes(t, itemsFound, expected)
+}
+
 func TestTreeGetPolygonById(t *testing.T) {
-	tree := New(8, 16, 1000)
+	tree := New(8, 16, 1000, NormalResultFactory)
 	polygons := createPolygons(500)
 	tree.Load(polygons)
 	idToFind := 10
@@ -32,7 +83,7 @@ func TestTreeGetPolygonById(t *testing.T) {
 }
 
 func TestHitTest(t *testing.T) {
-	tree := New(2, 4, 100)
+	tree := New(2, 4, 100, NormalResultFactory)
 	polygons := make(Polygons, 4)
 
 	points0 := Points{
@@ -42,7 +93,7 @@ func TestHitTest(t *testing.T) {
 		NewPoint(2, 0),
 		NewPoint(0, 0),
 	}
-	polygons[0] = NewPolygon(0, points0)
+	polygons[0] = NewPolygon(0, 1, points0)
 
 	points1 := Points{
 		NewPoint(0, 0),
@@ -51,7 +102,7 @@ func TestHitTest(t *testing.T) {
 		NewPoint(4, 0),
 		NewPoint(0, 0),
 	}
-	polygons[1] = NewPolygon(1, points1)
+	polygons[1] = NewPolygon(1, 1, points1)
 
 	points2 := Points{
 		NewPoint(2, 2),
@@ -60,7 +111,7 @@ func TestHitTest(t *testing.T) {
 		NewPoint(4, 2),
 		NewPoint(2, 2),
 	}
-	polygons[2] = NewPolygon(2, points2)
+	polygons[2] = NewPolygon(2, 1, points2)
 
 	points3 := Points{
 		NewPoint(10, 2),
@@ -69,7 +120,7 @@ func TestHitTest(t *testing.T) {
 		NewPoint(14, 2),
 		NewPoint(10, 2),
 	}
-	polygons[3] = NewPolygon(3, points3)
+	polygons[3] = NewPolygon(3, 1, points3)
 
 	tree.Load(polygons)
 
@@ -89,7 +140,7 @@ func TestHitTest(t *testing.T) {
 }
 
 func BenchmarkTreeFindLowFill(b *testing.B) {
-	tree := New(2, 4, 1000)
+	tree := New(2, 4, 1000, NormalResultFactory)
 	polygons := createPolygons(50000)
 	tree.Load(polygons)
 	b.ResetTimer()
@@ -100,7 +151,7 @@ func BenchmarkTreeFindLowFill(b *testing.B) {
 }
 
 func BenchmarkTreeFindHighFill(b *testing.B) {
-	tree := New(8, 16, 1000)
+	tree := New(8, 16, 1000, NormalResultFactory)
 	polygons := createPolygons(50000)
 	tree.Load(polygons)
 	b.ResetTimer()
@@ -110,11 +161,12 @@ func BenchmarkTreeFindHighFill(b *testing.B) {
 	}
 }
 
-func expectSameNodes(t *testing.T, actual Polygons, expected map[Polygon]struct{}) {
+func expectSameNodes(t *testing.T, actual Items, expected map[Polygon]struct{}) {
 	if len(actual) != len(expected) {
 		t.Errorf("Expecting %d results got %d", len(expected), len(actual))
 	}
-	for index, polygon := range actual {
+	for index, item := range actual {
+		polygon := item.Polygon()
 		if _, exists := expected[polygon]; !exists {
 			t.Errorf("Polygon %v at index %d should not have been found", polygon, index)
 		}
@@ -135,7 +187,7 @@ func createPolygon(id int) Polygon {
 	x := float64(rand.Int31n(120 - int32(lengthA)))
 	y := float64(rand.Int31n(120 - int32(lengthB)))
 
-	return NewPolygon(id, Points{
+	return NewPolygon(id, 1, Points{
 		NewPoint(x, y),
 		NewPoint(x+lengthA, y),
 		NewPoint(x+lengthA, y+lengthB),

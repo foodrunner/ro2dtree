@@ -14,7 +14,7 @@ type Tree struct {
 	resultPool *ResultPool
 }
 
-func New(minFill, maxFill, maxResults int) *Tree {
+func New(minFill, maxFill, maxResults int, fn ResultFactoryFunc) *Tree {
 	maxDepth := 128 //TODO FIX
 	return &Tree{
 		min:        minFill,
@@ -22,7 +22,7 @@ func New(minFill, maxFill, maxResults int) *Tree {
 		Root:       nil,
 		idMap:      make(map[int]Polygon),
 		stackPool:  newStackPool(32, maxDepth),
-		resultPool: newResultPool(32, maxResults),
+		resultPool: newResultPool(32, maxResults, fn),
 	}
 }
 
@@ -62,18 +62,17 @@ func (t *Tree) load(polygons Polygons) Polygon {
 	return t.load(parents)
 }
 
-func (t *Tree) Find(point Point) *Result {
+func (t *Tree) Find(point Point) Result {
 	if t.Root.Contains(point) == false {
 		return EmptyResult
 	}
 	return t.find(t.Root, point)
 }
 
-func (t *Tree) find(node Polygon, point Point) *Result {
+func (t *Tree) find(node Polygon, point Point) Result {
 	stack := t.stackPool.Checkout()
 	defer stack.Close()
 	result := t.resultPool.Checkout()
-	result.target = point
 
 	for ; node != nil; node = stack.Pop() {
 		if node.Contains(point) == false {
@@ -81,7 +80,8 @@ func (t *Tree) find(node Polygon, point Point) *Result {
 		}
 		children := node.Children()
 		if children == nil {
-			if result.Add(node) == false {
+			rank := node.Centroid().DistanceTo(point)
+			if result.Add(NewItem(node, rank)) == false {
 				break
 			}
 			continue
@@ -99,13 +99,17 @@ func (t *Tree) Get(id int) Polygon {
 
 // Return id of the polygon which contains point and has smallest distance to point
 func (t *Tree) HitTest(ids []int, point Point) int {
+	var resultId int
+	var minDistance float64
+
+	// Try with first polygon
 	polygon := t.Get(ids[0])
 	if polygon != nil && polygon.Contains(point) {
 		resultId = ids[0]
-		minDistance := polygon.Centroid().DistanceTo(point)
+		minDistance = polygon.Centroid().DistanceTo(point)
 	} else {
-		resultId := -1
-		minDistance := math.MaxFloat64
+		resultId = -1
+		minDistance = math.MaxFloat64
 	}
 
 	for _, id := range ids[1:] {
