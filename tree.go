@@ -73,6 +73,7 @@ func (t *Tree) find(node Polygon, point Point) Result {
 	stack := t.stackPool.Checkout()
 	defer stack.Close()
 	result := t.resultPool.Checkout()
+	result.SetTarget(point)
 
 	for ; node != nil; node = stack.Pop() {
 		if node.Contains(point) == false {
@@ -80,8 +81,7 @@ func (t *Tree) find(node Polygon, point Point) Result {
 		}
 		children := node.Children()
 		if children == nil {
-			rank := node.Centroid().DistanceTo(point)
-			if result.Add(NewItem(node, rank)) == false {
+			if result.Add(node) == false {
 				break
 			}
 			continue

@@ -6,6 +6,7 @@ type NormalResult struct {
 	position int
 	items    Items
 	pool     *ResultPool
+	target   Point
 }
 
 func NormalResultFactory(pool *ResultPool, capacity int) Result {
@@ -16,7 +17,9 @@ func NormalResultFactory(pool *ResultPool, capacity int) Result {
 	}
 }
 
-func (r *NormalResult) Add(item *Item) bool {
+func (r *NormalResult) Add(polygon Polygon) bool {
+	rank := polygon.Centroid().DistanceTo(r.target)
+	item := NewItem(polygon, rank)
 	r.items[r.position] = item
 	r.position++
 	return r.position != len(r.items)
@@ -31,6 +34,10 @@ func (r *NormalResult) Close() {
 		r.position = 0
 		r.pool.list <- r
 	}
+}
+
+func (r *NormalResult) SetTarget(target Point) {
+	r.target = target
 }
 
 func (r *NormalResult) Len() int {

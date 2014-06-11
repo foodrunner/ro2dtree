@@ -6,9 +6,10 @@ import (
 
 type Result interface {
 	Items() Items
-	Add(item *Item) bool
+	Add(polygon Polygon) bool
 	Close()
 	Len() int
+	SetTarget(point Point)
 }
 
 type ResultFactoryFunc func(*ResultPool, int) Result

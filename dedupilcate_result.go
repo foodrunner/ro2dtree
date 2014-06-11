@@ -5,6 +5,7 @@ type DeduplicateResult struct {
 	items    Items
 	pool     *ResultPool
 	groupMap map[int]int
+	target   Point
 }
 
 func DeduplicateResultFactory(pool *ResultPool, capacity int) Result {
@@ -16,7 +17,9 @@ func DeduplicateResultFactory(pool *ResultPool, capacity int) Result {
 	}
 }
 
-func (r *DeduplicateResult) Add(item *Item) bool {
+func (r *DeduplicateResult) Add(polygon Polygon) bool {
+	rank := polygon.Centroid().DistanceTo(r.target)
+	item := NewItem(polygon, rank)
 	oldPosition, present := r.groupMap[item.Polygon().GroupId()]
 	if present {
 		oldItem := r.items[oldPosition]
@@ -41,6 +44,10 @@ func (r *DeduplicateResult) Close() {
 		r.groupMap = make(map[int]int)
 		r.pool.list <- r
 	}
+}
+
+func (r *DeduplicateResult) SetTarget(target Point) {
+	r.target = target
 }
 
 func (r *DeduplicateResult) Len() int {
