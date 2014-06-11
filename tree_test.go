@@ -7,11 +7,11 @@ import (
 
 func TestTreeFindMatchingValues(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		tree := New(2, 4, 1000)
+		tree := New(2, 4, 1000, NormalResultFactory)
 		polygons := createPolygons(500)
 		tree.Load(polygons)
 		needle := NewPoint(float64(rand.Int31n(20)), float64(rand.Int31n(20)))
-		expectSameNodes(t, tree.Find(needle).Polygons(), scan(polygons, needle))
+		expectSameNodes(t, tree.Find(needle).Items(), scan(polygons, needle))
 	}
 }
 
@@ -55,19 +55,19 @@ func TestTreeFindUniqueByGroupMatchingValues(t *testing.T) {
 	group2Polygon := NewPolygon(3, 2, points3)
 	polygons[3] = group2Polygon
 
-	tree := New(2, 4, 100)
+	tree := New(2, 4, 100, DeduplicateResultFactory)
 	tree.Load(polygons)
 	needle := NewPoint(1, 1)
-	polygonsFound := tree.FindUniqueByGroup(needle).Polygons()
+	itemsFound := tree.Find(needle).Items()
 	// Load expected polygons
 	expected := make(map[Polygon]struct{})
 	expected[group1Polygon] = struct{}{}
 	expected[group2Polygon] = struct{}{}
-	expectSameNodes(t, polygonsFound, expected)
+	expectSameNodes(t, itemsFound, expected)
 }
 
 func TestTreeGetPolygonById(t *testing.T) {
-	tree := New(8, 16, 1000)
+	tree := New(8, 16, 1000, NormalResultFactory)
 	polygons := createPolygons(500)
 	tree.Load(polygons)
 	idToFind := 10
@@ -83,7 +83,7 @@ func TestTreeGetPolygonById(t *testing.T) {
 }
 
 func TestHitTest(t *testing.T) {
-	tree := New(2, 4, 100)
+	tree := New(2, 4, 100, NormalResultFactory)
 	polygons := make(Polygons, 4)
 
 	points0 := Points{
@@ -140,7 +140,7 @@ func TestHitTest(t *testing.T) {
 }
 
 func BenchmarkTreeFindLowFill(b *testing.B) {
-	tree := New(2, 4, 1000)
+	tree := New(2, 4, 1000, NormalResultFactory)
 	polygons := createPolygons(50000)
 	tree.Load(polygons)
 	b.ResetTimer()
@@ -151,7 +151,7 @@ func BenchmarkTreeFindLowFill(b *testing.B) {
 }
 
 func BenchmarkTreeFindHighFill(b *testing.B) {
-	tree := New(8, 16, 1000)
+	tree := New(8, 16, 1000, NormalResultFactory)
 	polygons := createPolygons(50000)
 	tree.Load(polygons)
 	b.ResetTimer()
@@ -161,11 +161,12 @@ func BenchmarkTreeFindHighFill(b *testing.B) {
 	}
 }
 
-func expectSameNodes(t *testing.T, actual Polygons, expected map[Polygon]struct{}) {
+func expectSameNodes(t *testing.T, actual Items, expected map[Polygon]struct{}) {
 	if len(actual) != len(expected) {
 		t.Errorf("Expecting %d results got %d", len(expected), len(actual))
 	}
-	for index, polygon := range actual {
+	for index, item := range actual {
+		polygon := item.Polygon()
 		if _, exists := expected[polygon]; !exists {
 			t.Errorf("Polygon %v at index %d should not have been found", polygon, index)
 		}

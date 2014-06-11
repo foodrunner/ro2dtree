@@ -17,7 +17,7 @@ func main() {
 	seed := rand.Int31n(10000)
 	rand.Seed(int64(seed))
 	all := createPolygons(100000)
-	tree := ro2dtree.New(16, 16, 5000)
+	tree := ro2dtree.New(16, 16, 5000, ro2dtree.NormalResultFactory)
 	needle := ro2dtree.NewPoint(228, 30)
 
 	tree.Load(all)
